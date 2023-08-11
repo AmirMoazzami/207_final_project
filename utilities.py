@@ -155,6 +155,11 @@ class ZillowData:
             print(f"val_x shape: {self.val_x.shape}")
             print(f"test_x shape: {self.test_x.shape}")
 
+    @staticmethod
+    def drop_column_static(df, column):
+        df = df.drop(labels=column, axis=1)
+        return df
+
     def clean_column_impute_binary(
         self, column, fill_value, replace_value, replace_with, printBool=False
     ):
@@ -172,6 +177,14 @@ class ZillowData:
                 f"train_x {column} unique values: {sorted(self.train_x[column].unique())}"
             )
 
+    @staticmethod
+    def clean_column_impute_binary_static(
+        df, column, fill_value, replace_value, replace_with
+    ):
+        df[column] = df[column].fillna(fill_value)
+        df[column] = df[column].replace(replace_value, replace_with)
+        return df
+
     def impute_column(self, column, fill_value, printBool=False):
         self.train_x[column] = self.train_x[column].fillna(fill_value)
         self.val_x[column] = self.val_x[column].fillna(fill_value)
@@ -181,6 +194,11 @@ class ZillowData:
             print(
                 f"train_x {column} unique values: {sorted(self.train_x[column].unique())}"
             )
+
+    @staticmethod
+    def impute_column_static(df, column, fill_value):
+        df[column] = df[column].fillna(fill_value)
+        return df
 
     def clean_all_data(self):
         """Drop or impute all columns."""
@@ -317,6 +335,9 @@ class ZillowData:
         self.train_x = self.train_x.drop(labels="transactiondate", axis=1)
 
         self.train_x["age_from_2016"] = 2016.0 - self.train_x["yearbuilt"]
+
+        # save the train_x yearbuilt as a series to be used for transforming other datasets
+        self.train_x_yearbuilt = self.train_x["yearbuilt"]
         self.train_x = self.train_x.drop(labels="yearbuilt", axis=1)
 
         # validation x
@@ -342,6 +363,176 @@ class ZillowData:
 
         self.test_x["age_from_2016"] = 2016.0 - self.test_x["yearbuilt"]
         self.test_x = self.test_x.drop(labels="yearbuilt", axis=1)
+
+    def clean_df(self, df):
+        """
+        Recieve a dataframe.
+        Drop or impute all columns using the x_train distributions of values.
+        """
+        df = ZillowData.drop_column_static(df, column="buildingclasstypeid")
+        df = ZillowData.drop_column_static(df, column="finishedsquarefeet13")
+        df = ZillowData.drop_column_static(df, column="basementsqft")
+        df = ZillowData.drop_column_static(df, column="storytypeid")
+        df = ZillowData.drop_column_static(df, column="yardbuildingsqft26")
+        df = ZillowData.clean_column_impute_binary_static(
+            df, column="fireplaceflag", fill_value=0, replace_value=True, replace_with=1
+        )
+        df = ZillowData.drop_column_static(df, column="architecturalstyletypeid")
+        df = ZillowData.drop_column_static(df, column="typeconstructiontypeid")
+        df = ZillowData.drop_column_static(df, column="finishedsquarefeet6")
+        df = ZillowData.clean_column_impute_binary_static(
+            df, column="decktypeid", fill_value=0, replace_value=66.0, replace_with=1
+        )
+        df = ZillowData.drop_column_static(df, column="pooltypeid10")
+        df = ZillowData.impute_column_static(df, column="poolsizesum", fill_value=0)
+        df = ZillowData.impute_column_static(df, column="pooltypeid2", fill_value=0)
+        df = ZillowData.clean_column_impute_binary_static(
+            df,
+            column="hashottuborspa",
+            fill_value=0,
+            replace_value=True,
+            replace_with=1,
+        )
+        df = ZillowData.clean_column_impute_binary_static(
+            df,
+            column="taxdelinquencyflag",
+            fill_value=0,
+            replace_value="Y",
+            replace_with=1,
+        )
+        df = ZillowData.drop_column_static(df, column="taxdelinquencyyear")
+        df = ZillowData.impute_column_static(
+            df, column="yardbuildingsqft17", fill_value=0
+        )
+        df = ZillowData.drop_column_static(df, column="finishedsquarefeet15")
+        df = ZillowData.drop_column_static(df, column="finishedsquarefeet50")
+        df = ZillowData.drop_column_static(df, column="finishedfloor1squarefeet")
+        df = ZillowData.impute_column_static(df, column="fireplacecnt", fill_value=0)
+        df = ZillowData.drop_column_static(df, column="threequarterbathnbr")
+        df = ZillowData.impute_column_static(df, column="pooltypeid7", fill_value=0)
+        df = ZillowData.impute_column_static(df, column="poolcnt", fill_value=0)
+        df = ZillowData.drop_column_static(df, column="numberofstories")
+        df = ZillowData.impute_column_static(
+            df,
+            column="airconditioningtypeid",
+            fill_value=self.train_x["airconditioningtypeid"].mode().item(),
+        )
+        df = ZillowData.impute_column_static(df, column="garagetotalsqft", fill_value=0)
+        df = ZillowData.impute_column_static(df, column="garagecarcnt", fill_value=0)
+        df = ZillowData.drop_column_static(df, column="regionidneighborhood")
+        df = ZillowData.impute_column_static(
+            df,
+            column="heatingorsystemtypeid",
+            fill_value=self.train_x["heatingorsystemtypeid"].mode().item(),
+        )
+        df = ZillowData.impute_column_static(
+            df,
+            column="buildingqualitytypeid",
+            fill_value=self.train_x["buildingqualitytypeid"].median(),
+        )
+        df = ZillowData.drop_column_static(df, column="propertyzoningdesc")
+        df = ZillowData.impute_column_static(
+            df, column="unitcnt", fill_value=self.train_x["unitcnt"].mode().item()
+        )
+        df = ZillowData.impute_column_static(
+            df,
+            column="lotsizesquarefeet",
+            fill_value=self.train_x["lotsizesquarefeet"].median(),
+        )
+        df = ZillowData.impute_column_static(
+            df,
+            column="finishedsquarefeet12",
+            fill_value=self.train_x["finishedsquarefeet12"].median(),
+        )
+        df = ZillowData.impute_column_static(
+            df,
+            column="regionidcity",
+            fill_value=self.train_x["regionidcity"].mode().item(),
+        )
+        df = ZillowData.drop_column_static(df, column="calculatedbathnbr")
+        df = ZillowData.drop_column_static(df, column="fullbathcnt")
+        df = ZillowData.impute_column_static(
+            df, column="yearbuilt", fill_value=self.train_x_yearbuilt.mode().item()
+        )
+        df = ZillowData.drop_column_static(df, column="censustractandblock")
+        df = ZillowData.impute_column_static(
+            df,
+            column="calculatedfinishedsquarefeet",
+            fill_value=self.train_x["calculatedfinishedsquarefeet"].median(),
+        )
+        df = ZillowData.impute_column_static(
+            df,
+            column="structuretaxvaluedollarcnt",
+            fill_value=self.train_x["structuretaxvaluedollarcnt"].median(),
+        )
+        df = ZillowData.impute_column_static(
+            df,
+            column="regionidzip",
+            fill_value=self.train_x["regionidzip"].mode().item(),
+        )
+        df = ZillowData.impute_column_static(
+            df, column="taxamount", fill_value=self.train_x["taxamount"].median()
+        )
+        df = ZillowData.impute_column_static(
+            df,
+            column="taxvaluedollarcnt",
+            fill_value=self.train_x["taxvaluedollarcnt"].median(),
+        )
+        df = ZillowData.impute_column_static(
+            df,
+            column="landtaxvaluedollarcnt",
+            fill_value=self.train_x["landtaxvaluedollarcnt"].median(),
+        )
+        df = ZillowData.drop_column_static(df, column="rawcensustractandblock")
+        df = ZillowData.impute_column_static(
+            df,
+            column="propertylandusetypeid",
+            fill_value=self.train_x["propertylandusetypeid"].mode().item(),
+        )
+        df = ZillowData.impute_column_static(
+            df, column="fips", fill_value=self.train_x["fips"].mode().item()
+        )
+        df = ZillowData.impute_column_static(
+            df, column="longitude", fill_value=self.train_x["longitude"].median()
+        )
+        df = ZillowData.drop_column_static(df, column="roomcnt")
+        df = ZillowData.impute_column_static(
+            df, column="latitude", fill_value=self.train_x["latitude"].median()
+        )
+        df = ZillowData.impute_column_static(
+            df,
+            column="regionidcounty",
+            fill_value=self.train_x["regionidcounty"].mode().item(),
+        )
+        df = ZillowData.impute_column_static(
+            df,
+            column="assessmentyear",
+            fill_value=self.train_x["assessmentyear"].mode().item(),
+        )
+        df = ZillowData.impute_column_static(
+            df, column="bedroomcnt", fill_value=self.train_x["bedroomcnt"].median()
+        )
+        df = ZillowData.impute_column_static(
+            df, column="bathroomcnt", fill_value=self.train_x["bathroomcnt"].median()
+        )
+        df = ZillowData.drop_column_static(df, column="propertycountylandusecode")
+
+        df = ZillowData.drop_column_static(df, column="parcelid")
+
+        # handle dates
+        # train x
+        datetime_obj = pd.to_datetime(df["transactiondate"]).dt
+        df["day"] = datetime_obj.day
+        df["year"] = (datetime_obj.year).astype("category")
+        df["month"] = ((datetime_obj.year - 2016) * 12 + datetime_obj.month).astype(
+            "category"
+        )
+        df = df.drop(labels="transactiondate", axis=1)
+
+        df["age_from_2016"] = 2016.0 - df["yearbuilt"]
+        df = df.drop(labels="yearbuilt", axis=1)
+
+        return df
 
     def convert_column_type(self, col_type=np.float32):
         self.train_x = self.train_x.astype(col_type)

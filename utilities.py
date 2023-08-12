@@ -12,13 +12,18 @@ from keras import metrics
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 
-"""Utility classes for the Zillow Competition"""
+"""
+Utility classes for the Zillow Competition
+
+This script contains the ZillowData class which is used in the Zillow_streamlined_feature_selection.ipynb
+notebook.
+"""
 
 np.random.seed(42)
 
 
 class ZillowData:
-    """"""
+    """Class to help handle the Zillow data."""
 
     def __init__(self, data_folder_path) -> None:
         self.data_folder_path = data_folder_path
@@ -26,8 +31,10 @@ class ZillowData:
     def get_data(self) -> None:
         """
         Load the provided data.
+            Files containing the features
             - properties_2016.csv
             - properties_2017.csv
+            Files containing the target logerror values
             - train_2016_v2.csv
             - train_2017.csv
         """
@@ -80,13 +87,13 @@ class ZillowData:
 
     @staticmethod
     def plot_logerr_hist(df) -> None:
-        """"""
+        """Plot a histogram of the logerror values."""
         sns.histplot(data=df.logerror, kde=True).set(title="Distribution of logerrors")
         plt.show()
 
     @staticmethod
     def plot_logerr_QQ(df) -> None:
-        """"""
+        """Plot QQ of logerror values."""
         fig = plt.figure()
         ax = fig.add_subplot(111)
         res = stats.probplot(x=df.logerror, plot=ax)
@@ -94,11 +101,8 @@ class ZillowData:
         plt.show()
 
     def form_datasets(self):
-        """"""
-        # get  targets
-        # self.train_y = self.train[["parcelid", "logerror"]]
-        # self.val_y = self.val[["parcelid", "logerror"]]
-        # self.test_y = self.test[["parcelid", "logerror"]]
+        """Split train-validation-test into x and y sets."""
+        # get targets
         self.train_y = self.train[["logerror"]]
         self.val_y = self.val[["logerror"]]
         self.test_y = self.test[["logerror"]]
@@ -109,7 +113,7 @@ class ZillowData:
 
     @staticmethod
     def get_missing_ratio_df(df):
-        """"""
+        """Return a df of each column and their ratio of missing rows."""
         na_ratio = df.isnull().sum() / len(df)
         # na_ratio = na_ratio.drop(na_ratio[na_ratio == 0].index)
         na_ratio = na_ratio.sort_values(ascending=False)
@@ -117,18 +121,9 @@ class ZillowData:
 
         return na_ratio_df
 
-    def accepted_features_list(self, lst) -> None:
-        """"""
-        self.accepted_features_lst = lst
-
-    def drop_unaccepted_features(self) -> None:
-        """"""
-        self.train_x = self.train_x[self.accepted_features_lst]
-        self.val_x = self.val_x[self.accepted_features_lst]
-        self.test_x = self.test_x[self.accepted_features_lst]
-
     @staticmethod
     def investigate_column(column, df, bins=20):
+        """"""
         print(f"Column: {column}")
         print(f"Nonzero count: {np.count_nonzero(df[column])}")
         na_ratio = df[column].isnull().sum() / len(df[column])

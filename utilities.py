@@ -37,6 +37,8 @@ class ZillowData:
             Files containing the target logerror values
             - train_2016_v2.csv
             - train_2017.csv
+
+        Merge feature columns with logerror targets based on parcelid.
         """
         # load data sets containing information about the properties
         housing_info_2016 = pd.read_csv(
@@ -123,7 +125,7 @@ class ZillowData:
 
     @staticmethod
     def investigate_column(column, df, bins=20):
-        """"""
+        """Function used to print and plot information about a given feature columns."""
         print(f"Column: {column}")
         print(f"Nonzero count: {np.count_nonzero(df[column])}")
         na_ratio = df[column].isnull().sum() / len(df[column])
@@ -141,6 +143,7 @@ class ZillowData:
 
     # # # Data Cleaning # # #
     def drop_column(self, column, printBool=False):
+        """Drop a column given its name."""
         self.train_x = self.train_x.drop(labels=column, axis=1)
         self.val_x = self.val_x.drop(labels=column, axis=1)
         self.test_x = self.test_x.drop(labels=column, axis=1)
@@ -152,12 +155,15 @@ class ZillowData:
 
     @staticmethod
     def drop_column_static(df, column):
+        """Drop a column given its name."""
         df = df.drop(labels=column, axis=1)
         return df
 
     def clean_column_impute_binary(
         self, column, fill_value, replace_value, replace_with, printBool=False
     ):
+        """Impute a column assuming replacing NaN with a value and replacing replace_value
+        with replace_with (e.g., True -> 1)"""
         self.train_x[column] = self.train_x[column].fillna(fill_value)
         self.train_x[column] = self.train_x[column].replace(replace_value, replace_with)
 
@@ -176,11 +182,14 @@ class ZillowData:
     def clean_column_impute_binary_static(
         df, column, fill_value, replace_value, replace_with
     ):
+        """Impute a column assuming replacing NaN with a value and replacing replace_value
+        with replace_with (e.g., True -> 1)"""
         df[column] = df[column].fillna(fill_value)
         df[column] = df[column].replace(replace_value, replace_with)
         return df
 
     def impute_column(self, column, fill_value, printBool=False):
+        """Impute a column with a given value."""
         self.train_x[column] = self.train_x[column].fillna(fill_value)
         self.val_x[column] = self.val_x[column].fillna(fill_value)
         self.test_x[column] = self.test_x[column].fillna(fill_value)
@@ -192,6 +201,7 @@ class ZillowData:
 
     @staticmethod
     def impute_column_static(df, column, fill_value):
+        """Impute a column with a given value."""
         df[column] = df[column].fillna(fill_value)
         return df
 
@@ -530,12 +540,13 @@ class ZillowData:
         return df
 
     def convert_column_type(self, col_type=np.float32):
+        """Convert all sets so that all columns are of type np.float32."""
         self.train_x = self.train_x.astype(col_type)
         self.val_x = self.val_x.astype(col_type)
         self.test_x = self.test_x.astype(col_type)
 
     def format_x_y(self):
-        """"""
+        """Remove logerror from x sets and convert x and y sets to numpy arrays."""
         # format targets
         self.train_y_arr = self.train_y["logerror"].to_numpy()
         self.val_y_arr = self.val_y["logerror"].to_numpy()
